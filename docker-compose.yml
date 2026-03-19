@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  transcription-app:
+    build: .
+    container_name: media-transcription-app
+    ports:
+      - "8501:8501"
+    volumes:
+      - model-cache:/root/.cache/huggingface
+    environment:
+      - STREAMLIT_SERVER_MAX_UPLOAD_SIZE=1000
+    restart: unless-stopped
+
+volumes:
+  model-cache:
