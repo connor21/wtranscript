@@ -295,15 +295,13 @@ def main():
                 label_visibility="collapsed"
             )
             
-            if st.button("📋 Copy to clipboard", use_container_width=True):
-                try:
-                    import pyperclip
-                    pyperclip.copy(st.session_state.transcript_text)
-                    st.success("✅ Copied to clipboard!")
-                except ImportError:
-                    st.info("� Install pyperclip for clipboard functionality: pip install pyperclip")
-                except Exception as e:
-                    st.warning(f"Could not copy to clipboard. Please copy manually.")
+            st.download_button(
+                label="📥 Download transcript",
+                data=st.session_state.transcript_text,
+                file_name="transcript.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
     
     else:
         st.info("👆 Please upload a media file to begin")
