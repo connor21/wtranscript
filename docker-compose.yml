@@ -10,6 +10,14 @@ services:
       - model-cache:/root/.cache/huggingface
     environment:
       - STREAMLIT_SERVER_MAX_UPLOAD_SIZE=1000
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     restart: unless-stopped
 
 volumes:

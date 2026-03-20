@@ -4,6 +4,7 @@ import tempfile
 import subprocess
 from typing import Optional, Tuple
 from faster_whisper import WhisperModel
+import logging
 
 
 SUPPORTED_FORMATS = ['mp3', 'wav', 'm4a', 'mp4', 'mov']
@@ -11,6 +12,8 @@ QUALITY_OPTIONS = {
     'Low (faster)': 'small',
     'High (better quality)': 'large-v3'
 }
+
+logging.basicConfig(level=logging.INFO)
 
 
 def init_session_state():
@@ -32,6 +35,26 @@ def init_session_state():
         st.session_state.start_transcription = False
     if 'transcription_params' not in st.session_state:
         st.session_state.transcription_params = None
+
+
+def get_device_and_compute_type() -> Tuple[str, str]:
+    """
+    Detect available device and return optimal settings.
+    Returns: (device, compute_type)
+    """
+    try:
+        import torch
+        if torch.cuda.is_available():
+            gpu_name = torch.cuda.get_device_name(0)
+            logging.info(f"GPU detected: {gpu_name}")
+            return "cuda", "float16"
+    except ImportError:
+        logging.info("PyTorch not available, using CPU")
+    except Exception as e:
+        logging.warning(f"Error checking GPU: {e}")
+    
+    logging.info("Using CPU")
+    return "cpu", "int8"
 
 
 def validate_ffmpeg() -> bool:
@@ -106,8 +129,10 @@ def run_transcription(file_path: str, model_size: str, uploaded_path: str, segme
     progress_bar = st.progress(0)
     
     try:
-        status_placeholder.info("🔄 Loading model...")
-        model = WhisperModel(model_size, device="cpu", compute_type="int8")
+        device, compute_type = get_device_and_compute_type()
+        device_label = "GPU (CUDA)" if device == "cuda" else "CPU"
+        status_placeholder.info(f"🔄 Loading model on {device_label}...")
+        model = WhisperModel(model_size, device=device, compute_type=compute_type)
         
         status_placeholder.info("🎙️ Transcribing...")
         progress_bar.progress(30)
